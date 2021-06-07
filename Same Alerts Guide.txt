@@ -1,0 +1,95 @@
+Custom Files:
+	/home/dsame/dsame.sh
+	/home/dsame/scripts/script.sh
+	/home/pi/Desktop/emailer.py
+	/home/pi/rpitx/testpocsag.sh
+
+STEP 1:
+Install rtl-sdr and multimon-ng
+
+# Install dependencies
+sudo apt-get update
+sudo apt-get -y install git cmake build-essential libusb-1.0 qt4-qmake libpulse-dev libx11-dev
+
+# Fetch and compile rtl-sdr source
+mkdir -p ~/src/
+cd ~/src/
+git clone git://git.osmocom.org/rtl-sdr.git
+cd rtl-sdr
+mkdir build
+cd build
+cmake ../ -DINSTALL_UDEV_RULES=ON
+make
+sudo make install
+sudo ldconfig
+
+# Fetch and compile multimonNG
+cd ~/src/
+git clone https://github.com/EliasOenal/multimonNG.git
+cd multimonNG
+mkdir build
+cd build
+qmake ../multimon-ng.pro
+make
+sudo make install
+
+Had to install QT database
+	sudo apt-get install qt4-dev-tools
+
+Create blacklist file
+	/etc/modprobe.d/blacklist-rtl.conf
+		blacklist dvb_usb_rtl28xxu
+		blacklist rtl2832
+		blacklist rtl2830
+
+STEP 2: 
+Test rtl & multimon-ng
+
+#This plays audio back to listen to 92.2 FM
+rtl_fm -f 92.5M -M wbfm -s 190k | aplay -r 32 -f S16_LE -t raw -c 1
+
+#This plays audio back to listen to NOAA
+rtl_fm -f 162.475M | aplay -r 24 -f S16_LE -t raw -c 1
+
+#This plays audio back to listen to Pagers
+rtl_fm -f 152.180M | aplay -r 24 -f S16_LE -t raw -c 1
+
+#This reads packets & shows messages
+rtl_fm -o 4 -A lut -s 22050 -f 152.180M | multimon-ng -t raw -a POCSAG512 -a POCSAG1200 -a POCSAG2400 -f alpha /dev/stdin
+
+#This reads packets & shows messages
+rtl_fm -s 22050 -f 152.180M | multimon-ng -t raw -a POCSAG1200 -f alpha /dev/stdin
+
+STEP 3:
+Install Dsame & Configure
+
+1) Download dsame-master
+
+2) Extract to /home/dsame
+
+3) Allow terminal to run dsame with this command
+	chmod +x /home/dsame/dsame.py
+
+4) Install Custom Files
+	/home/dsame/dsame.sh
+	/home/dsame/scripts/script.sh
+	/home/pi/Desktop/emailer.py
+
+6) Run program in terminal with this command:
+	/home/dsame/dsame.sh
+
+7) Dsame will now send emails to weatheralertpi@gmail.com
+
+STEP 4:
+Test Dsame using RPITX
+
+1) Install rpitx
+	git clone https://github.com/F5OEO/rpitx
+	cd rpitx
+	./install.sh
+2) Copy testpocsag.sh to /home/pi/rpitx to install custom script
+3) Open rpitx in terminal
+	cd rpitx
+	./easytest.sh
+4) Send a test signal to 162.475M using POCSAG
+5) Email alert should be sent

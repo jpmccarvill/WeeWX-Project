@@ -1,0 +1,83 @@
+Custom Files:
+	/home/pi/Desktop/fileparser.py
+
+Weather Station Step By Step
+
+1) Install Raspberry Pi OS
+
+2) Enable i2c & camera
+
+3) Install BME680 - Use this command in terminal for one-step install
+	curl https://get.pimoroni.com/bme680 | bash
+
+4) Install WeeWx- Follow ALL STEPS
+	http://weewx.com/docs/setup.htm
+
+5) Install FileParse
+	1) copy the fileparse driver to the WeeWX user directory
+
+	/home/weewx/examples/fileparse/bin/user/fileparse.py to /home/weewx/bin/user
+
+	2) add a new [FileParse] stanza to the WeeWX configuration file
+
+	[FileParse]
+	    poll_interval = 10
+	    path = /var/tmp/datafile
+	    driver = user.fileparse
+
+	3) in the WeeWX configuration file, modify the station_type setting to use the
+	fileparse driver
+
+	[Station]
+	    ...
+	    station_type = FileParse
+
+	4) restart WeeWX
+
+	sudo /etc/init.d/weewx stop
+	sudo /etc/init.d/weewx start
+
+6) Run fileparser.py script (Custom)
+	Open Terminal and type "python3 /home/pi/Desktop/fileparser.py"
+		Script reads Temp, Hum, Press & uSV.
+		Script takes a photo & saves to /home/pi/Desktop/wx.jpg
+		Script runs every 10 seconds.
+
+7) Add Ionizing Radiation to WeeWX
+
+7a) Add 'usv' to wview_extended.py
+	[('usv', 'REAL')]
+
+7b) Run this command to create new WeeWX Database. Database is located in /home/weewx/archive/weewx.sdb
+SCRIPT: sudo /home/weewx/bin/wee_database /home/weewx/weewx.conf --reconfigure
+
+7c) Backup old weewx.sdb and rename weewx.sdb_new to weewx.sdb. WeeWX database has now been updated. Run this script and ensure no errors.
+SCRIPT: sudo /home/weewx/bin/wee_database /home/weewx/weewx.conf --rebuild-daily
+
+7d) Copy usv.py code to /home/weewx/bin/extensions.py to add usv as an observation unit. This script runs whenever WeeWX is started.
+
+7e) Edit skin.conf to generate Ionizing Radiation plot/graph.
+	[[[dayusv]]]
+		[[[[usv]]]]
+			label = Ionizing Radiation
+
+7e) Also add for Week, Month, and Year.
+
+7f) Edit index.html.tmpl to include the image "dayusv.png", "weekusv.png", "monthusv.png", "yearusv.png".
+
+At this time, WeeWX will report on sensor readings, but not display PiCam photo. Editing the skin is required to display photo.
+
+7) Edit skin.conf file & add:
+	[Extras]
+   	   [[video]]
+        	still = /home/pi/Desktop/wx.jpg
+       		hyperlink = http://www.audubonwx.com
+
+8) Edit skin template (tpl file) & add:
+	<br>
+	<a href="$Extras.video.hyperlink">
+  	  <img src="$Extras.video.still" alt="Video capture"/>
+	</a>
+
+9) Webcam now displays where the code was added. Also remove lines of code for sensors that are not active by placing "##" in front of the lines.
+

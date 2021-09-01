@@ -81,3 +81,10 @@ At this time, WeeWX will report on sensor readings, but not display PiCam photo.
 
 9) Webcam now displays where the code was added. Also remove lines of code for sensors that are not active by placing "##" in front of the lines.
 
+10)
+RUN SCRIPT AT STARTUP
+
+sudo nano/etc/rc.local
+python3 /home/pi/Desktop/fileparser.py &
+
+exit 0

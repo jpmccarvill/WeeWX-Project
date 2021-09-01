@@ -93,3 +93,9 @@ Test Dsame using RPITX
 	./easytest.sh
 4) Send a test signal to 162.475M using POCSAG
 5) Email alert should be sent
+
+STEP 5:
+Run script at startup in GUI
+sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
+Add at the end:
+@lxterminal --command="/home/dsame/dsame.sh"

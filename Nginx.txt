@@ -1,0 +1,24 @@
+How to install nginx
+
+STEP 1: INSTALL NGINX
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt install nginx
+
+2) Point NGINX to WeeWX
+
+sudo nano etc/nginx/sites-available/default
+
+Change
+
+root /var/www/html;
+
+to
+
+root /home/weewx/public_html;
+
+3) Restart nginx
+
+sudo systemctl restart nginx
+
+4) Verify in web browser by going to Pi's IP Address
